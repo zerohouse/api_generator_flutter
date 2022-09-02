@@ -25,16 +25,24 @@ java {
     withSourcesJar()
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
-}
 
 wrapper {
     gradleVersion = "6.1.1"
     distributionType = Wrapper.DistributionType.ALL
 }
 
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.github.zerohouse'
+            artifactId = 'ApiGenerator'
+            version = "1.0-SNAPSHOT"
+            from components.java
+
+            pom {
+                description = 'A description of my library'
+            }
+        }
+    }
+}
