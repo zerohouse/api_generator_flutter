@@ -1,8 +1,11 @@
+
 plugins {
-    id 'java'
-    id 'maven-publish'
     id 'org.jetbrains.kotlin.jvm' version '1.6.21'
 }
+
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
 
 group 'com.github.zerohouse'
 version '1.0-SNAPSHOT'
