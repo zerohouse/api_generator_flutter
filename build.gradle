@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.21'
+}
+
+group 'com.github.zerohouse'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "commons-io:commons-io:2.8.0"
+    implementation "org.reflections:reflections:0.10.2"
+    implementation "cz.habarta.typescript-generator:typescript-generator-core:2.5.423"
+    implementation 'org.springframework:spring-web:5.3.0'
+    implementation 'junit:junit:4.13.1'
+}
+
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+wrapper {
+    gradleVersion = "7.3.3"
+    distributionType = Wrapper.DistributionType.ALL
+}
+
