@@ -44,6 +44,25 @@ object ApiGenerator {
         return "TYPE.$name"
     }
 
+    val defaultUrlParser: (Method) -> String = { method ->
+        var url = (method.declaringClass.getAnnotation(RequestMapping::class.java)?.value?.firstOrNull() ?: "") +
+                (method.getAnnotation(GetMapping::class.java)?.value?.firstOrNull()
+                    ?: method.getAnnotation(PostMapping::class.java)?.value?.firstOrNull()
+                    ?: method.getAnnotation(PutMapping::class.java)?.value?.firstOrNull()
+                    ?: method.getAnnotation(DeleteMapping::class.java)?.value?.firstOrNull()
+                    ?: method.getAnnotation(RequestMapping::class.java)?.value?.firstOrNull() ?: "")
+        val pathParams = method.parameters.filter { it.isAnnotationPresent(PathVariable::class.java) }
+        if (pathParams.isEmpty())
+            "\"" + url + "\""
+        else {
+            method.parameters.filter { it.isAnnotationPresent(PathVariable::class.java) }
+                .forEach {
+                    url = url.replace("{${it.name}}", "\${${it.name}}")
+                }
+            "`$url`"
+        }
+    }
+
     fun generate(
         packageName: String,
         path: String,
@@ -69,24 +88,7 @@ object ApiGenerator {
                 )
             }>"
         },
-        urlParser: (Method) -> String = { method ->
-            var url = (method.declaringClass.getAnnotation(RequestMapping::class.java)?.value?.firstOrNull() ?: "") +
-                    (method.getAnnotation(GetMapping::class.java)?.value?.firstOrNull()
-                        ?: method.getAnnotation(PostMapping::class.java)?.value?.firstOrNull()
-                        ?: method.getAnnotation(PutMapping::class.java)?.value?.firstOrNull()
-                        ?: method.getAnnotation(DeleteMapping::class.java)?.value?.firstOrNull()
-                        ?: method.getAnnotation(RequestMapping::class.java)?.value?.firstOrNull())
-            val pathParams = method.parameters.filter { it.isAnnotationPresent(PathVariable::class.java) }
-            if (pathParams.isEmpty())
-                "\"" + url + "\""
-            else {
-                method.parameters.filter { it.isAnnotationPresent(PathVariable::class.java) }
-                    .forEach {
-                        url = url.replace("{${it.name}}", "\${${it.name}}")
-                    }
-                "`$url`"
-            }
-        },
+        urlParser: (Method) -> String = defaultUrlParser,
         methodParser: (Method) -> String = { method ->
             if (method.isAnnotationPresent(GetMapping::class.java))
                 "get"
