@@ -70,12 +70,12 @@ object ApiGenerator {
             }>"
         },
         urlParser: (Method) -> String = { method ->
-            var url = (method.declaringClass.getAnnotation(RequestMapping::class.java).value.firstOrNull() ?: "") +
-                    (method.getAnnotation(GetMapping::class.java).value.firstOrNull()
-                        ?: method.getAnnotation(PostMapping::class.java).value.firstOrNull()
-                        ?: method.getAnnotation(PutMapping::class.java).value.firstOrNull()
-                        ?: method.getAnnotation(DeleteMapping::class.java).value.firstOrNull()
-                        ?: method.getAnnotation(RequestMapping::class.java).value.firstOrNull())
+            var url = (method.declaringClass.getAnnotation(RequestMapping::class.java)?.value?.firstOrNull() ?: "") +
+                    (method.getAnnotation(GetMapping::class.java)?.value?.firstOrNull()
+                        ?: method.getAnnotation(PostMapping::class.java)?.value?.firstOrNull()
+                        ?: method.getAnnotation(PutMapping::class.java)?.value?.firstOrNull()
+                        ?: method.getAnnotation(DeleteMapping::class.java)?.value?.firstOrNull()
+                        ?: method.getAnnotation(RequestMapping::class.java)?.value?.firstOrNull())
             val pathParams = method.parameters.filter { it.isAnnotationPresent(PathVariable::class.java) }
             if (pathParams.isEmpty())
                 "\"" + url + "\""
