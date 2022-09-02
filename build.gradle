@@ -38,11 +38,11 @@ publishing {
         maven(MavenPublication) {
             groupId = 'com.github.zerohouse'
             artifactId = 'ApiGenerator'
-            version = "0.0.3"
+            version = "0.0.4"
             from components.java
 
             pom {
-                description = '0.0.3'
+                description = '0.0.4'
             }
         }
     }
