@@ -6,7 +6,6 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
-
 group 'com.github.zerohouse'
 version '1.0-SNAPSHOT'
 
@@ -40,11 +39,11 @@ publishing {
         maven(MavenPublication) {
             groupId = 'com.github.zerohouse'
             artifactId = 'ApiGenerator'
-            version = "1.0-SNAPSHOT"
+            version = "0.0.3"
             from components.java
 
             pom {
-                description = 'A description of my library'
+                description = '0.0.3'
             }
         }
     }
