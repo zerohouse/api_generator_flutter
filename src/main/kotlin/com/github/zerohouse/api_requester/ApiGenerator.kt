@@ -70,7 +70,12 @@ object ApiGenerator {
             }>"
         },
         urlParser: (Method) -> String = { method ->
-            var url = (method.getAnnotation(GetMapping::class.java).value.firstOrNull() ?: "")
+            var url = (method.declaringClass.getAnnotation(RequestMapping::class.java).value.firstOrNull() ?: "") +
+                    (method.getAnnotation(GetMapping::class.java).value.firstOrNull()
+                        ?: method.getAnnotation(PostMapping::class.java).value.firstOrNull()
+                        ?: method.getAnnotation(PutMapping::class.java).value.firstOrNull()
+                        ?: method.getAnnotation(DeleteMapping::class.java).value.firstOrNull()
+                        ?: method.getAnnotation(RequestMapping::class.java).value.firstOrNull())
             val pathParams = method.parameters.filter { it.isAnnotationPresent(PathVariable::class.java) }
             if (pathParams.isEmpty())
                 "\"" + url + "\""
@@ -171,8 +176,10 @@ object ApiGenerator {
         val types = mutableListOf<Type>()
         methodMap.map { it.value }.flatten().map {
             types.addAll(it.parameters.map { p -> p.parameterizedType })
-            types.add(it.returnType)
-            types.add((it.genericReturnType as ParameterizedType).actualTypeArguments[0])
+            if (returnFromGenericArgument)
+                types.add((it.genericReturnType as ParameterizedType).actualTypeArguments[0])
+            else
+                types.add(it.returnType)
         }
 
         makeTypeScriptModels(types, path)
