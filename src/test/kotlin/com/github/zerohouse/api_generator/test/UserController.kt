@@ -1,4 +1,4 @@
-package com.github.zerohouse.api_requester.test
+package com.github.zerohouse.api_generator.test
 
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

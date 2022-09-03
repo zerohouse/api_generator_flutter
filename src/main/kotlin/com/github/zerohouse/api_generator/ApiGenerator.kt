@@ -1,4 +1,4 @@
-package com.github.zerohouse.api_requester
+package com.github.zerohouse.api_generator
 
 import cz.habarta.typescript.generator.*
 import org.apache.commons.io.FileUtils
@@ -14,11 +14,6 @@ import java.lang.reflect.Type
 import java.util.*
 
 object ApiGenerator {
-    @JvmStatic
-    fun main(args: Array<String>) {
-        println(args)
-        generate(args[0], args[1])
-    }
 
     private val defaultTypes = mutableMapOf(
         "boolean" to "boolean",
@@ -121,17 +116,25 @@ object ApiGenerator {
             PostMapping::class.java,
             DeleteMapping::class.java,
             PutMapping::class.java
-        )
+        ),
+        excludes: List<Class<*>> = listOf()
     ) {
+
         val ref = Reflections(packageName, Scanners.MethodsAnnotated)
         val methodMap = mutableMapOf<Type, MutableList<Method>>()
 
-        annotations.forEach {
-            ref.getMethodsAnnotatedWith(it)
+        annotations.forEach { annotation ->
+            ref.getMethodsAnnotatedWith(annotation)
                 .forEach {
-                    if (methodMap[it.declaringClass] == null)
-                        methodMap[it.declaringClass] = mutableListOf()
-                    methodMap[it.declaringClass]!!.add(it)
+                    run {
+                        if (it.declaringClass.isAnnotationPresent(ExcludeGeneration::class.java))
+                            return@run
+                        if (it.isAnnotationPresent(ExcludeGeneration::class.java))
+                            return@run
+                        if (methodMap[it.declaringClass] == null)
+                            methodMap[it.declaringClass] = mutableListOf()
+                        methodMap[it.declaringClass]!!.add(it)
+                    }
                 }
         }
 
@@ -145,7 +148,8 @@ object ApiGenerator {
                 methodParser = methodParser,
                 queryParamsParser = queryParamsParser,
                 bodyParser = bodyParser,
-                returnFromGenericArgument = returnFromGenericArgument
+                returnFromGenericArgument = returnFromGenericArgument,
+                exclude = excludes
             ).apply {
                 this.members = methodMap.map { it.key }.joinToString("\n") { type ->
                     typeNamer(type).replaceFirstChar { it.lowercase(Locale.getDefault()) } + " = new ${typeNamer(type)}(this.requester);"
@@ -165,7 +169,8 @@ object ApiGenerator {
                             methodParser = methodParser,
                             queryParamsParser = queryParamsParser,
                             bodyParser = bodyParser,
-                            returnFromGenericArgument = returnFromGenericArgument
+                            returnFromGenericArgument = returnFromGenericArgument,
+                            exclude = excludes
                         ).apply {
                             kv.value.forEach { method ->
                                 this.addMethods(method)
@@ -182,7 +187,7 @@ object ApiGenerator {
 
         val types = mutableListOf<Type>()
         methodMap.map { it.value }.flatten().map {
-            types.addAll(it.parameters.map { p -> p.parameterizedType })
+            types.addAll(it.parameters.filter { p -> !excludes.contains(p.type) }.map { p -> p.parameterizedType })
             if (returnFromGenericArgument)
                 types.add((it.genericReturnType as ParameterizedType).actualTypeArguments[0])
             else

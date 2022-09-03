@@ -1,4 +1,4 @@
-package com.github.zerohouse.api_requester
+package com.github.zerohouse.api_generator
 
 import org.apache.commons.io.FileUtils
 import java.io.File
@@ -22,7 +22,8 @@ class TsGenerator(
     val bodyParser: (Method) -> String,
     val returnFromGenericArgument: Boolean,
     var preClass: String = "",
-    vararg dependencies: String
+    var exclude: List<Class<*>> = listOf(),
+    vararg dependencies: String,
 ) {
 
     var head = """
@@ -40,7 +41,7 @@ ${String.format(head, className())}
     $constructor
     $members
     ${
-            methods.joinToString("") {
+            methods.joinToString("\n\n  ") {
                 """${it.name}(${getParameters(it)}):${
                     this.returnParser(
                         returnTypeByMethod(it)
@@ -62,7 +63,7 @@ $end""".trimIndent()
     }
 
     private fun getParameters(it: Method): String {
-        val params = it.parameters.toMutableList()
+        val params = it.parameters.filter { !exclude.contains(it.type) }.toMutableList()
         params.sortByDescending { p -> parameterRequire(p) }
         return params.joinToString(", ") { p -> this.parameterParser(p) }
     }

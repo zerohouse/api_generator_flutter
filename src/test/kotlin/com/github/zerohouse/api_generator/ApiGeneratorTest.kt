@@ -1,6 +1,6 @@
-package com.github.zerohouse.api_requester
+package com.github.zerohouse.api_generator
 
-import com.github.zerohouse.api_requester.test.UserController
+import com.github.zerohouse.api_generator.test.UserController
 import org.junit.Assert
 import org.junit.Test
 
