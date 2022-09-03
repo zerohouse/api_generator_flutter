@@ -6,7 +6,7 @@ apply plugin: 'java'
 apply plugin: 'maven-publish'
 
 group 'com.github.zerohouse'
-version '0.0.8'
+version '0.0.9'
 
 repositories {
     mavenCentral()
@@ -32,17 +32,23 @@ wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
 
+task generateApi(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.github.zerohouse.api_requester.ApiGenerator'
+    args = ['', '']
+}
+
 
 publishing {
     publications {
         maven(MavenPublication) {
             groupId = 'com.github.zerohouse'
-            artifactId = 'ApiGenerator'
-            version = "0.0.8"
+            artifactId = 'api_generator'
+            version = "0.0.9"
             from components.java
 
             pom {
-                description = '0.0.8'
+                description = '0.0.9'
             }
         }
     }

@@ -14,6 +14,11 @@ import java.lang.reflect.Type
 import java.util.*
 
 object ApiGenerator {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        println(args)
+        generate(args[0], args[1])
+    }
 
     private val defaultTypes = mutableMapOf(
         "boolean" to "boolean",
@@ -28,12 +33,12 @@ object ApiGenerator {
         "BigInteger" to "number",
         "String" to "string",
         "Date" to "Date",
-        "List" to "%s[]",
-        "ArrayList" to "%s[]",
-        "Set" to "%s[]",
-        "HashSet" to "%s[]",
-        "Map" to "Map<%s>",
-        "HashMap" to "Map<%s>",
+        "List" to "any[]",
+        "ArrayList" to "any[]",
+        "Set" to "any[]",
+        "HashSet" to "any[]",
+        "Map" to "Map<any, any>",
+        "HashMap" to "Map<any, any>",
         "Object" to "any"
     )
 
