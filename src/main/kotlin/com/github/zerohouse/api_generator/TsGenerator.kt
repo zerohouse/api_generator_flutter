@@ -67,7 +67,7 @@ $end""".trimIndent()
             if (listOf("ResponseEntity", "Mono", "Flux")
                     .contains(returnType.rawType.typeName.split(".").last())
             )
-                return returnType(returnType.actualTypeArguments[0] as ParameterizedType)
+                return returnType(returnType.actualTypeArguments[0])
         return returnType
     }
 
