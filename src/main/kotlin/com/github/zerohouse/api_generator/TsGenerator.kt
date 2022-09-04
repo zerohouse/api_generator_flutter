@@ -44,7 +44,7 @@ ${String.format(head, className())}
             methods.joinToString("\n\n    ") {
                 """${it.name}(${getParameters(it)}):${
                     this.returnParser(
-                        returnType(it.genericReturnType as ParameterizedType)
+                        returnType(it.genericReturnType)
                     )
                 }{
         return this.requester.request({method: "${this.methodParser(it)}", url:${this.urlParser(it)}, queryParams:${
@@ -62,11 +62,12 @@ ${String.format(head, className())}
 $end""".trimIndent()
     }
 
-    private fun returnType(returnType: ParameterizedType): Type {
-        if (listOf("ResponseEntity", "Mono", "Flux")
-                .contains(returnType.rawType.typeName.split(".").last())
-        )
-            return returnType(returnType.actualTypeArguments[0] as ParameterizedType)
+    private fun returnType(returnType: Type): Type {
+        if (returnType is ParameterizedType)
+            if (listOf("ResponseEntity", "Mono", "Flux")
+                    .contains(returnType.rawType.typeName.split(".").last())
+            )
+                return returnType(returnType.actualTypeArguments[0] as ParameterizedType)
         return returnType
     }
 
