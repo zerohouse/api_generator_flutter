@@ -63,50 +63,59 @@ object ApiGenerator {
         }
     }
 
+    val defaultTypeNamer: (Type) -> String = {
+        it.typeName.split(".").last()
+    }
+
+    val defaultParameterRequireChecker: (Parameter) -> Boolean = {
+        when {
+            it.isAnnotationPresent(RequestParam::class.java) -> {
+                val annotation = it.getAnnotation(RequestParam::class.java)
+                annotation.defaultValue == ValueConstants.DEFAULT_NONE && annotation.required
+            }
+            else -> true
+        }
+    }
+
+    val defaultParameterParser: (Parameter) -> String = {
+        "${it.name}${if (defaultParameterRequireChecker(it)) "" else "?"}:${nameFrom(it.type.simpleName)}"
+    }
+
+    val defaultReturnTypeParser: (Type) -> String = {
+        "Promise<${nameFrom(it.typeName)}>"
+    }
+
+    val defaultHttpMethodParser: (Method) -> String = { method ->
+        if (method.isAnnotationPresent(GetMapping::class.java))
+            "get"
+        else if (method.isAnnotationPresent(PostMapping::class.java))
+            "post"
+        else if (method.isAnnotationPresent(DeleteMapping::class.java))
+            "delete"
+        else if (method.isAnnotationPresent(PutMapping::class.java))
+            "put"
+        else
+            ""
+    }
+
+    val defaultQueryParamParser: (Method) -> String = { method ->
+        "{${
+            method.parameters.filter { it.isAnnotationPresent(RequestParam::class.java) }
+                .joinToString(", ") { it.name }
+        }}"
+    }
+
+
     fun generate(
         packageName: String,
         path: String,
-        typeNamer: (Type) -> String = {
-            it.typeName.split(".").last()
-        },
-        parameterRequire: (Parameter) -> Boolean = {
-            when {
-                it.isAnnotationPresent(RequestParam::class.java) -> {
-                    val annotation = it.getAnnotation(RequestParam::class.java)
-                    annotation.defaultValue == ValueConstants.DEFAULT_NONE && annotation.required
-                }
-                else -> true
-            }
-        },
-        parameterParser: (Parameter) -> String = {
-            "${it.name}${if (parameterRequire(it)) "" else "?"}:${nameFrom(it.type.simpleName)}"
-        },
-        returnParser: (Type) -> String = {
-            "Promise<${
-                nameFrom(
-                    it.typeName
-                )
-            }>"
-        },
+        typeNamer: (Type) -> String = defaultTypeNamer,
+        parameterRequireChecker: (Parameter) -> Boolean = defaultParameterRequireChecker,
+        parameterParser: (Parameter) -> String = defaultParameterParser,
+        returnParser: (Type) -> String = defaultReturnTypeParser,
         urlParser: (Method) -> String = defaultUrlParser,
-        methodParser: (Method) -> String = { method ->
-            if (method.isAnnotationPresent(GetMapping::class.java))
-                "get"
-            else if (method.isAnnotationPresent(PostMapping::class.java))
-                "post"
-            else if (method.isAnnotationPresent(DeleteMapping::class.java))
-                "delete"
-            else if (method.isAnnotationPresent(PutMapping::class.java))
-                "put"
-            else
-                ""
-        },
-        queryParamsParser: (Method) -> String = { method ->
-            "{${
-                method.parameters.filter { it.isAnnotationPresent(RequestParam::class.java) }
-                    .joinToString(", ") { it.name }
-            }}"
-        },
+        httpMethodParser: (Method) -> String = defaultHttpMethodParser,
+        queryParamsParser: (Method) -> String = defaultQueryParamParser,
         bodyParser: (Method) -> String = { method ->
             method.parameters.find { it.isAnnotationPresent(RequestBody::class.java) }?.name ?: "null"
         },
@@ -117,7 +126,8 @@ object ApiGenerator {
             DeleteMapping::class.java,
             PutMapping::class.java
         ),
-        excludes: List<Class<*>> = listOf()
+        excludes: List<Class<*>> = listOf(),
+        typeScriptModels: List<Type> = listOf()
     ) {
 
         val ref = Reflections(packageName, Scanners.MethodsAnnotated)
@@ -141,11 +151,11 @@ object ApiGenerator {
         val result =
             TsGenerator(
                 "ApiRequester",
-                parameterRequire = parameterRequire,
+                parameterRequire = parameterRequireChecker,
                 parameterParser = parameterParser,
                 returnParser = returnParser,
                 urlParser = urlParser,
-                methodParser = methodParser,
+                methodParser = httpMethodParser,
                 queryParamsParser = queryParamsParser,
                 bodyParser = bodyParser,
                 returnFromGenericArgument = returnFromGenericArgument,
@@ -162,11 +172,11 @@ object ApiGenerator {
                     methodMap.map { kv ->
                         TsGenerator(
                             typeNamer(kv.key),
-                            parameterRequire = parameterRequire,
+                            parameterRequire = parameterRequireChecker,
                             parameterParser = parameterParser,
                             returnParser = returnParser,
                             urlParser = urlParser,
-                            methodParser = methodParser,
+                            methodParser = httpMethodParser,
                             queryParamsParser = queryParamsParser,
                             bodyParser = bodyParser,
                             returnFromGenericArgument = returnFromGenericArgument,
@@ -185,7 +195,7 @@ object ApiGenerator {
         }
 
 
-        val types = mutableListOf<Type>()
+        val types = typeScriptModels.toMutableList();
         methodMap.map { it.value }.flatten().map {
             types.addAll(it.parameters.filter { p -> !excludes.contains(p.type) }.map { p -> p.parameterizedType })
             if (returnFromGenericArgument)
