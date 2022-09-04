@@ -34,7 +34,9 @@ object ApiGenerator {
         "HashSet" to "any[]",
         "Map" to "Map<any, any>",
         "HashMap" to "Map<any, any>",
-        "Object" to "any"
+        "Object" to "any",
+        "Void" to "void",
+        "void" to "void"
     )
 
     private fun nameFrom(simpleName: String): String {
@@ -158,7 +160,6 @@ object ApiGenerator {
                 methodParser = httpMethodParser,
                 queryParamsParser = queryParamsParser,
                 bodyParser = bodyParser,
-                returnFromGenericArgument = returnFromGenericArgument,
                 exclude = excludes
             ).apply {
                 this.members = methodMap.map { it.key }.joinToString("\n") { type ->
@@ -179,7 +180,6 @@ object ApiGenerator {
                             methodParser = httpMethodParser,
                             queryParamsParser = queryParamsParser,
                             bodyParser = bodyParser,
-                            returnFromGenericArgument = returnFromGenericArgument,
                             exclude = excludes
                         ).apply {
                             kv.value.forEach { method ->

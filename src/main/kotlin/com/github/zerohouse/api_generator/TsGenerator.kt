@@ -20,7 +20,6 @@ class TsGenerator(
     val methodParser: (Method) -> String,
     val queryParamsParser: (Method) -> String,
     val bodyParser: (Method) -> String,
-    val returnFromGenericArgument: Boolean,
     var preClass: String = "",
     var exclude: List<Class<*>> = listOf(),
     vararg dependencies: String,
