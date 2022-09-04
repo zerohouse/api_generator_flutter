@@ -41,10 +41,10 @@ ${String.format(head, className())}
     $constructor
     $members
     ${
-            methods.joinToString("\n\n  ") {
+            methods.joinToString("\n\n    ") {
                 """${it.name}(${getParameters(it)}):${
                     this.returnParser(
-                        returnTypeByMethod(it)
+                        returnType(it.genericReturnType as ParameterizedType)
                     )
                 }{
         return this.requester.request({method: "${this.methodParser(it)}", url:${this.urlParser(it)}, queryParams:${
@@ -62,14 +62,20 @@ ${String.format(head, className())}
 $end""".trimIndent()
     }
 
+    private fun returnType(returnType: ParameterizedType): Type {
+        if (listOf("ResponseEntity", "Mono", "Flux")
+                .contains(returnType.rawType.typeName.split(".").last())
+        )
+            return returnType(returnType.actualTypeArguments[0] as ParameterizedType)
+        return returnType
+    }
+
     private fun getParameters(it: Method): String {
         val params = it.parameters.filter { !exclude.contains(it.type) }.toMutableList()
         params.sortByDescending { p -> parameterRequire(p) }
         return params.joinToString(", ") { p -> this.parameterParser(p) }
     }
 
-    private fun returnTypeByMethod(it: Method) = if (!returnFromGenericArgument) it.returnType else
-        (it.genericReturnType as ParameterizedType).actualTypeArguments[0]
 
     private fun className(): String {
         return this.type
