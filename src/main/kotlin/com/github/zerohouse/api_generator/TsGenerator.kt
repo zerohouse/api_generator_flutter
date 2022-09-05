@@ -13,7 +13,7 @@ class TsGenerator(
     private var type: String,
     var constructor: String = "constructor(private requester: Requester) {\n    }",
     var members: String = "",
-    val parameterRequire: (Parameter) -> Boolean,
+    val parameterTyper: (Parameter) -> ParameterType,
     val parameterParser: (Parameter) -> String,
     val returnParser: (Type) -> String,
     val urlParser: (Method) -> String,
@@ -21,7 +21,6 @@ class TsGenerator(
     val queryParamsParser: (Method) -> String,
     val bodyParser: (Method) -> String,
     var preClass: String = "",
-    var exclude: List<Class<*>> = listOf(),
     vararg dependencies: String,
 ) {
 
@@ -71,8 +70,8 @@ $end""".trimIndent()
     }
 
     private fun getParameters(it: Method): String {
-        val params = it.parameters.filter { !exclude.contains(it.type) }.toMutableList()
-        params.sortByDescending { p -> parameterRequire(p) }
+        val params = it.parameters.filter { parameterTyper(it) != ParameterType.Exclude }.toMutableList()
+        params.sortByDescending { p -> parameterTyper(p).ordinal }
         return params.joinToString(", ") { p -> this.parameterParser(p) }
     }
 

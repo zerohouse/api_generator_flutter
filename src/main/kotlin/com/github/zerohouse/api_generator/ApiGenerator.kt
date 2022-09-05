@@ -69,18 +69,22 @@ object ApiGenerator {
         it.typeName.split(".").last()
     }
 
-    val defaultParameterRequireChecker: (Parameter) -> Boolean = {
+    val defaultParameterTyper: (Parameter) -> ParameterType = {
         when {
-            it.isAnnotationPresent(RequestParam::class.java) -> {
-                val annotation = it.getAnnotation(RequestParam::class.java)
-                annotation.defaultValue == ValueConstants.DEFAULT_NONE && annotation.required
+            it.isAnnotationPresent(RequestParam::class.java) &&
+                    it.getAnnotation(RequestParam::class.java).defaultValue == ValueConstants.DEFAULT_NONE
+                    && it.getAnnotation(RequestParam::class.java).required -> {
+                ParameterType.Required
             }
-            else -> true
+            it.isAnnotationPresent(RequestBody::class.java) && it.getAnnotation(RequestBody::class.java).required -> {
+                ParameterType.Required
+            }
+            else -> ParameterType.Optional
         }
     }
 
     val defaultParameterParser: (Parameter) -> String = {
-        "${it.name}${if (defaultParameterRequireChecker(it)) "" else "?"}:${nameFrom(it.type.simpleName)}"
+        "${it.name}${if (defaultParameterTyper(it) == ParameterType.Required) "" else "?"}:${nameFrom(it.type.simpleName)}"
     }
 
     val defaultReturnTypeParser: (Type) -> String = {
@@ -112,7 +116,7 @@ object ApiGenerator {
         packageName: String,
         path: String,
         typeNamer: (Type) -> String = defaultTypeNamer,
-        parameterRequireChecker: (Parameter) -> Boolean = defaultParameterRequireChecker,
+        parameterTyper: (Parameter) -> ParameterType = defaultParameterTyper,
         parameterParser: (Parameter) -> String = defaultParameterParser,
         returnParser: (Type) -> String = defaultReturnTypeParser,
         urlParser: (Method) -> String = defaultUrlParser,
@@ -153,14 +157,13 @@ object ApiGenerator {
         val result =
             TsGenerator(
                 "ApiRequester",
-                parameterRequire = parameterRequireChecker,
+                parameterTyper = parameterTyper,
                 parameterParser = parameterParser,
                 returnParser = returnParser,
                 urlParser = urlParser,
                 methodParser = httpMethodParser,
                 queryParamsParser = queryParamsParser,
                 bodyParser = bodyParser,
-                exclude = excludes
             ).apply {
                 this.members = methodMap.map { it.key }.joinToString("\n") { type ->
                     typeNamer(type).replaceFirstChar { it.lowercase(Locale.getDefault()) } + " = new ${typeNamer(type)}(this.requester);"
@@ -173,14 +176,13 @@ object ApiGenerator {
                     methodMap.map { kv ->
                         TsGenerator(
                             typeNamer(kv.key),
-                            parameterRequire = parameterRequireChecker,
+                            parameterTyper = parameterTyper,
                             parameterParser = parameterParser,
                             returnParser = returnParser,
                             urlParser = urlParser,
                             methodParser = httpMethodParser,
                             queryParamsParser = queryParamsParser,
                             bodyParser = bodyParser,
-                            exclude = excludes
                         ).apply {
                             kv.value.forEach { method ->
                                 this.addMethods(method)
@@ -220,3 +222,4 @@ object ApiGenerator {
 
 
 }
+
