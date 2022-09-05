@@ -4,6 +4,7 @@ import cz.habarta.typescript.generator.*
 import org.apache.commons.io.FileUtils
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.io.File
 import java.io.IOException
@@ -201,7 +202,7 @@ object ApiGenerator {
         }
 
 
-        val types = typeScriptModels.toMutableList();
+        val types = typeScriptModels.toMutableList()
         methodMap.map { it.value }.flatten().map {
             types.addAll(it.parameters.filter { p -> !excludes.contains(p.type) }.map { p -> p.parameterizedType })
             if (returnFromGenericArgument)
@@ -209,7 +210,7 @@ object ApiGenerator {
             else
                 types.add(it.returnType)
         }
-
+        types.remove(ResponseEntity::class.java)
         makeTypeScriptModels(types, path, modelFileName)
     }
 
