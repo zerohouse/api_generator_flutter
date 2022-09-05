@@ -195,7 +195,7 @@ object ApiGenerator {
                     }.joinToString("\n\n")
 
         try {
-            FileUtils.write(File("$path/api.requester.ts"), result, "utf8")
+            FileUtils.write(File("$path/$requesterClassName.ts"), result, "utf8")
         } catch (e: IOException) {
             e.printStackTrace()
         }
