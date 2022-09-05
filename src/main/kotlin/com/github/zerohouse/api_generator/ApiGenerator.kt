@@ -133,7 +133,9 @@ object ApiGenerator {
             PutMapping::class.java
         ),
         excludes: List<Class<*>> = listOf(),
-        typeScriptModels: List<Type> = listOf()
+        typeScriptModels: List<Type> = listOf(),
+        modelFileName: String = "api.model",
+        requesterClassName: String = "Requester"
     ) {
 
         val ref = Reflections(packageName, Scanners.MethodsAnnotated)
@@ -156,7 +158,7 @@ object ApiGenerator {
 
         val result =
             TsGenerator(
-                "ApiRequester",
+                "Api$requesterClassName",
                 parameterTyper = parameterTyper,
                 parameterParser = parameterParser,
                 returnParser = returnParser,
@@ -164,12 +166,13 @@ object ApiGenerator {
                 methodParser = httpMethodParser,
                 queryParamsParser = queryParamsParser,
                 bodyParser = bodyParser,
+                requesterClassName = requesterClassName
             ).apply {
                 this.members = methodMap.map { it.key }.joinToString("\n") { type ->
                     typeNamer(type).replaceFirstChar { it.lowercase(Locale.getDefault()) } + " = new ${typeNamer(type)}(this.requester);"
                 }
                 this.preClass =
-                    "import * as TYPE from './api.model'\n\nabstract class Requester {\n" +
+                    "import * as TYPE from './$modelFileName'\n\nabstract class $requesterClassName {\n" +
                             "  abstract request(param: { queryParams: any; body: any; url: string, method: string }): Promise<any>\n" +
                             "}\n"
             }.makeResult() +
@@ -183,6 +186,7 @@ object ApiGenerator {
                             methodParser = httpMethodParser,
                             queryParamsParser = queryParamsParser,
                             bodyParser = bodyParser,
+                            requesterClassName = requesterClassName,
                         ).apply {
                             kv.value.forEach { method ->
                                 this.addMethods(method)
@@ -206,17 +210,17 @@ object ApiGenerator {
                 types.add(it.returnType)
         }
 
-        makeTypeScriptModels(types, path)
+        makeTypeScriptModels(types, path, modelFileName)
     }
 
 
-    private fun makeTypeScriptModels(types: MutableList<Type>, path: String) {
+    private fun makeTypeScriptModels(types: MutableList<Type>, path: String, modelFileName: String) {
         TypeScriptGenerator(Settings().apply {
             outputKind = TypeScriptOutputKind.module
             jsonLibrary = JsonLibrary.jackson2
         }).generateTypeScript(
             Input.from(*types.toTypedArray()),
-            Output.to(File("$path/api.model.ts"))
+            Output.to(File("$path/$modelFileName.ts"))
         )
     }
 

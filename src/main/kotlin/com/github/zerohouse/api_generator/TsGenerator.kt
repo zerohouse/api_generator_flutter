@@ -11,7 +11,8 @@ import java.lang.reflect.Type
 
 class TsGenerator(
     private var type: String,
-    var constructor: String = "constructor(private requester: Requester) {\n    }",
+    var requesterClassName: String = "",
+    var constructor: String = "constructor(private requester: $requesterClassName) {\n    }",
     var members: String = "",
     val parameterTyper: (Parameter) -> ParameterType,
     val parameterParser: (Parameter) -> String,
