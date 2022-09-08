@@ -205,7 +205,7 @@ object ApiGenerator {
         val types = typeScriptModels.toMutableList()
         methodMap.map { it.value }.flatten().forEach {
             types.addAll(it.parameters.filter { p -> !excludes.contains(p.type) }.map { p -> p.parameterizedType })
-            if (returnFromGenericArgument) {
+            if (returnFromGenericArgument && (it.genericReturnType is ParameterizedType)) {
                 val param = (it.genericReturnType as ParameterizedType).actualTypeArguments.firstOrNull()
                 if (param != null)
                     types.add(param)
