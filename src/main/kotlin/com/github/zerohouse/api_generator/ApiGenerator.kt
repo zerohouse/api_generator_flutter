@@ -112,6 +112,11 @@ object ApiGenerator {
         }}"
     }
 
+    val defaultMemberNamer: (String) -> String = {
+        it.replaceFirstChar { f -> f.lowercase(Locale.getDefault()) }
+            .replace("Controller", "")
+    }
+
 
     fun generate(
         packageName: String,
@@ -136,7 +141,8 @@ object ApiGenerator {
         excludes: List<Class<*>> = listOf(),
         typeScriptModels: List<Type> = listOf(),
         modelFileName: String = "api.model",
-        requesterClassName: String = "Requester"
+        requesterClassName: String = "Requester",
+        memberNamer: (String) -> String = defaultMemberNamer
     ) {
 
         val ref = Reflections(packageName, Scanners.MethodsAnnotated)
@@ -170,7 +176,7 @@ object ApiGenerator {
                 requesterClassName = requesterClassName
             ).apply {
                 this.members = methodMap.map { it.key }.joinToString("\n") { type ->
-                    typeNamer(type).replaceFirstChar { it.lowercase(Locale.getDefault()) } + " = new ${typeNamer(type)}(this.requester);"
+                    memberNamer(typeNamer(type)) + " = new ${typeNamer(type)}(this.requester);"
                 }
                 this.preClass =
                     "import * as TYPE from './$modelFileName'\n\nabstract class $requesterClassName {\n" +
