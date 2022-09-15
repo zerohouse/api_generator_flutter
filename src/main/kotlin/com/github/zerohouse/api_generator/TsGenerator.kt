@@ -7,6 +7,8 @@ import java.lang.reflect.Method
 import java.lang.reflect.Parameter
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.util.*
+import kotlin.collections.LinkedHashSet
 
 
 class TsGenerator(
@@ -54,7 +56,7 @@ ${String.format(head, className())}
                     this.bodyParser(
                         it
                     )
-                }})
+                }}${if (returnType(it.genericReturnType).typeName.lowercase(Locale.getDefault()) == "void") ", returnVoid: true" else ""})
     }"""
             }
         }

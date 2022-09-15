@@ -175,12 +175,12 @@ object ApiGenerator {
                 bodyParser = bodyParser,
                 requesterClassName = requesterClassName
             ).apply {
-                this.members = methodMap.map { it.key }.joinToString("\n") { type ->
+                this.members = methodMap.map { it.key }.joinToString("\n    ") { type ->
                     memberNamer(typeNamer(type)) + " = new ${typeNamer(type)}(this.requester);"
                 }
                 this.preClass =
                     "import * as TYPE from './$modelFileName'\n\nabstract class $requesterClassName {\n" +
-                            "  abstract request(param: { queryParams: any; body: any; url: string, method: string }): Promise<any>\n" +
+                            "  abstract request(param: { queryParams: any; body: any; url: string, method: string, returnVoid?: boolean }): Promise<any>\n" +
                             "}\n"
             }.makeResult() +
                     methodMap.map { kv ->
