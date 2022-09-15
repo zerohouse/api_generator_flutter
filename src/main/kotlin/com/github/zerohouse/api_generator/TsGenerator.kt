@@ -56,7 +56,7 @@ ${String.format(head, className())}
                     this.bodyParser(
                         it
                     )
-                }}${if (returnType(it.genericReturnType).typeName.lowercase(Locale.getDefault()) == "void") ", returnVoid: true" else ""})
+                }${if (returnType(it.genericReturnType).typeName.lowercase(Locale.getDefault()) == "void") ", returnVoid: true" else ""}})
     }"""
             }
         }
