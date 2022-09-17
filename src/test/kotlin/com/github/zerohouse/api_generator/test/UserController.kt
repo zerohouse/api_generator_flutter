@@ -16,7 +16,7 @@ class UserController {
         @RequestParam str: String,
         @RequestParam(defaultValue = "") str2: String,
         @RequestParam(required = false) str3: String?,
-    ): List<MutableList<ABC>> {
+    ): List<Map<ABC, String>> {
         return mutableListOf()
     }
 }
