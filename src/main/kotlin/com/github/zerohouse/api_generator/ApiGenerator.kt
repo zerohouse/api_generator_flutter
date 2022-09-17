@@ -13,6 +13,8 @@ import java.lang.reflect.Parameter
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*
+import java.util.function.Function
+import java.util.stream.Collectors
 
 object ApiGenerator {
 
@@ -29,7 +31,8 @@ object ApiGenerator {
         "BigInteger" to "number",
         "String" to "string",
         "Date" to "Date",
-        "List" to "any[]",
+        "List" to "%s" +
+                "[]",
         "ArrayList" to "any[]",
         "Set" to "any[]",
         "HashSet" to "any[]",
@@ -40,11 +43,41 @@ object ApiGenerator {
         "void" to "void"
     )
 
-    private fun nameFrom(simpleName: String): String {
-        val name = simpleName.split(".").last()
-        if (defaultTypes.containsKey(name))
-            return defaultTypes[name]!!
-        return "TYPE.$name"
+    private val typeScriptModels = mutableListOf<Class<*>>()
+
+    private fun nameFrom(typeName: String, arg: String? = null): String {
+        try {
+            typeScriptModels.add(Class.forName(typeName))
+        } catch (e: Exception) {
+        }
+        if (!typeName.contains("<")) {
+            val name: String = parsedName(typeName)
+            if (defaultTypes.containsKey(name)) {
+                return if (arg != null) String.format(defaultTypes[name]!!, arg) else String.format(
+                    defaultTypes[name]!!, "any"
+                )
+            }
+            return if (arg != null) String.format("%s<%s>", name, arg) else "TYPE.$name"
+        }
+        return nameFrom(
+            typeName.substring(0, typeName.indexOf("<")),
+            nameFrom(
+                typeName.substring(typeName.indexOf("<") + 1, typeName.lastIndexOf(">"))
+            )
+        )
+    }
+
+    private fun parsedName(typeName: String): String {
+        if (typeName.contains(",")) {
+            return Arrays.stream(typeName.split(",").toTypedArray()).map { s: String ->
+                this.nameFrom(
+                    s,
+                )
+            }.collect(Collectors.joining(", "))
+        }
+        return if (typeName.contains("$")) typeName.substring(typeName.lastIndexOf("$") + 1) else typeName.substring(
+            typeName.lastIndexOf(".") + 1
+        )
     }
 
     val defaultUrlParser: (Method) -> String = { method ->
@@ -208,7 +241,7 @@ object ApiGenerator {
         }
 
 
-        val types = typeScriptModels.toMutableList()
+        val types = typeScriptModels.toMutableSet()
         methodMap.map { it.value }.flatten().forEach {
             types.addAll(it.parameters.filter { p -> !excludes.contains(p.type) }.map { p -> p.parameterizedType })
             if (returnFromGenericArgument && (it.genericReturnType is ParameterizedType)) {
@@ -218,12 +251,13 @@ object ApiGenerator {
             } else
                 types.add(it.returnType)
         }
+        types.addAll(typeScriptModels)
         types.remove(ResponseEntity::class.java)
         makeTypeScriptModels(types, path, modelFileName)
     }
 
 
-    private fun makeTypeScriptModels(types: MutableList<Type>, path: String, modelFileName: String) {
+    private fun makeTypeScriptModels(types: MutableSet<Type>, path: String, modelFileName: String) {
         TypeScriptGenerator(Settings().apply {
             outputKind = TypeScriptOutputKind.module
             jsonLibrary = JsonLibrary.jackson2

@@ -5,6 +5,7 @@ import org.junit.Assert
 import org.junit.Test
 import org.springframework.http.ResponseEntity
 import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 
 
 internal class ApiGeneratorTest {
@@ -19,10 +20,22 @@ internal class ApiGeneratorTest {
     @Test
     fun typeTest() {
         println(
-            (UserController::class.java.declaredMethods.first().genericReturnType as ParameterizedType).rawType.typeName
+            ApiGenerator.defaultReturnTypeParser(
+                returnType(
+                    (UserController::class.java.declaredMethods.first().genericReturnType as ParameterizedType).actualTypeArguments[0]
+                )
+
+            )
         )
-//        println(
-//            ((UserController::class.java.declaredMethods.first().genericReturnType as ParameterizedType).actualTypeArguments[0] as ParameterizedType).actualTypeArguments[0]
-//        )
     }
+
+    fun returnType(returnType: Type): Type {
+        if (returnType is ParameterizedType)
+            if (listOf("ResponseEntity", "Mono", "Flux")
+                    .contains(returnType.rawType.typeName.split(".").last())
+            )
+                return returnType(returnType.actualTypeArguments[0])
+        return returnType
+    }
+
 }

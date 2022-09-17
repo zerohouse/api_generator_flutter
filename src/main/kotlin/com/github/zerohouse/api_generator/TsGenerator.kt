@@ -67,7 +67,7 @@ ${String.format(head, className())}
 $end""".trimIndent()
     }
 
-    private fun returnType(returnType: Type): Type {
+    fun returnType(returnType: Type): Type {
         if (returnType is ParameterizedType)
             if (listOf("ResponseEntity", "Mono", "Flux")
                     .contains(returnType.rawType.typeName.split(".").last())
