@@ -13,7 +13,6 @@ import java.lang.reflect.Parameter
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*
-import java.util.function.Function
 import java.util.stream.Collectors
 
 object ApiGenerator {
@@ -42,11 +41,11 @@ object ApiGenerator {
         "void" to "void"
     )
 
-    private val typeScriptModels = mutableListOf<Class<*>>()
+    private val typeScriptModelSet = mutableSetOf<Class<*>>()
 
     private fun nameFrom(typeName: String, arg: String? = null): String {
         try {
-            typeScriptModels.add(Class.forName(typeName))
+            typeScriptModelSet.add(Class.forName(typeName))
         } catch (e: Exception) {
         }
         if (!typeName.contains("<")) {
@@ -56,7 +55,7 @@ object ApiGenerator {
                     defaultTypes[name]!!, "any"
                 )
             }
-            return if (arg != null) String.format("%s<%s>", name, arg) else "TYPE.$name"
+            return if (arg != null) String.format("TYPE.%s<%s>", name, arg) else "TYPE.$name"
         }
         return nameFrom(
             typeName.substring(0, typeName.indexOf("<")),
@@ -250,6 +249,7 @@ object ApiGenerator {
             } else
                 types.add(it.returnType)
         }
+        types.addAll(typeScriptModelSet)
         types.addAll(typeScriptModels)
         types.remove(ResponseEntity::class.java)
         makeTypeScriptModels(types, path, modelFileName)
