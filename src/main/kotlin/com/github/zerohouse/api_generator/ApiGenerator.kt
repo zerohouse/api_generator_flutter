@@ -55,7 +55,15 @@ object ApiGenerator {
                     defaultTypes[name]!!, "any"
                 )
             }
-            return if (arg != null) String.format("TYPE.%s<%s>", name, arg) else "TYPE.$name"
+            if (arg != null) {
+                if (name.startsWith("TYPE."))
+                    return String.format("%s<%s>", name, arg)
+                return String.format("TYPE.%s<%s>", name, arg)
+            } else {
+                if (name.startsWith("TYPE."))
+                    return name
+                return "TYPE.$name"
+            }
         }
         return nameFrom(
             typeName.substring(0, typeName.indexOf("<")),
@@ -108,9 +116,11 @@ object ApiGenerator {
                     && it.getAnnotation(RequestParam::class.java).required -> {
                 ParameterType.Required
             }
+
             it.isAnnotationPresent(RequestBody::class.java) && it.getAnnotation(RequestBody::class.java).required -> {
                 ParameterType.Required
             }
+
             else -> ParameterType.Optional
         }
     }

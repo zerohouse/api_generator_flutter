@@ -11,10 +11,7 @@ import java.lang.reflect.Type
 internal class ApiGeneratorTest {
     @Test
     fun defaultUrlParser() {
-        Assert.assertEquals(
-            ApiGenerator.defaultUrlParser(UserController::class.java.declaredMethods.first()),
-            "\"/user\""
-        )
+       ApiGenerator.generate("com.github.zerohouse.api_generator.test", "./")
     }
 
     @Test

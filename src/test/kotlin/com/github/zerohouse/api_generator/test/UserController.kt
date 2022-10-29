@@ -14,8 +14,8 @@ class UserController {
         @RequestParam str: String,
         @RequestParam(defaultValue = "") str2: String,
         @RequestParam(required = false) str3: String?,
-    ): Page<Map<ABC, String>> {
-        return "" as Page<Map<ABC, String>>
+    ): Page<Map<ABC, Page<ABC>>> {
+        return "" as Page<Map<ABC, Page<ABC>>>
     }
 }
 

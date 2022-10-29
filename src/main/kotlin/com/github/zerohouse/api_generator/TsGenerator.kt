@@ -78,7 +78,7 @@ $end""".trimIndent()
 
     private fun getParameters(it: Method): String {
         val params = it.parameters.filter { parameterTyper(it) != ParameterType.Exclude }.toMutableList()
-        params.sortByDescending { p -> parameterTyper(p).ordinal }
+        params.sortBy { p -> parameterTyper(p).ordinal }
         return params.joinToString(", ") { p -> this.parameterParser(p) }
     }
 
