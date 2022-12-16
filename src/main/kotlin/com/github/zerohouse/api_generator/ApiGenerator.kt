@@ -207,6 +207,12 @@ object ApiGenerator {
         val result =
             TsGenerator(
                 "Api$requesterClassName",
+
+                constructor = "constructor(private requester: $requesterClassName) {\n" +
+                        methodMap.map { it.key }.joinToString("\n") { type ->
+                            "        this." + memberNamer(typeNamer(type)) + " = new ${typeNamer(type)}(this.requester);"
+                        } + "\n    }",
+
                 parameterTyper = parameterTyper,
                 parameterParser = parameterParser,
                 returnParser = returnParser,
@@ -216,10 +222,6 @@ object ApiGenerator {
                 bodyParser = bodyParser,
                 requesterClassName = requesterClassName,
 
-                constructor = "constructor(private requester: $requesterClassName) {\n" +
-                        methodMap.map { it.key }.joinToString("\n") { type ->
-                            "        this." + memberNamer(typeNamer(type)) + " = new ${typeNamer(type)}(this.requester);"
-                        } + "\n    }"
             ).apply {
                 this.members = methodMap.map { it.key }.joinToString("\n    ") { type ->
                     memberNamer(typeNamer(type)) + ";"
