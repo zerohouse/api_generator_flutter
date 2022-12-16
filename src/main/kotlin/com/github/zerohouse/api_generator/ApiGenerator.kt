@@ -46,7 +46,7 @@ object ApiGenerator {
     private fun nameFrom(typeName: String, arg: String? = null): String {
         try {
             typeScriptModelSet.add(Class.forName(typeName))
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
         if (!typeName.contains("<")) {
             val name: String = parsedName(typeName)
@@ -215,6 +215,7 @@ object ApiGenerator {
                 queryParamsParser = queryParamsParser,
                 bodyParser = bodyParser,
                 requesterClassName = requesterClassName,
+
                 constructor = "constructor(private requester: $requesterClassName) {\n" +
                         methodMap.map { it.key }.joinToString("\n") { type ->
                             "        this." + memberNamer(typeNamer(type)) + " = new ${typeNamer(type)}(this.requester);"
