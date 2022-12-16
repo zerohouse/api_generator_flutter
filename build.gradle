@@ -6,7 +6,7 @@ apply plugin: 'java'
 apply plugin: 'maven-publish'
 
 group 'com.github.zerohouse'
-version '0.0.31'
+version '0.0.32'
 
 repositories {
     mavenCentral()
@@ -14,11 +14,11 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    implementation "commons-io:commons-io:2.8.0"
+    implementation 'commons-io:commons-io:2.11.0'
     implementation "org.reflections:reflections:0.10.2"
-    implementation "cz.habarta.typescript-generator:typescript-generator-core:2.5.423"
-    implementation 'org.springframework:spring-web:5.3.0'
-    implementation 'junit:junit:4.13.1'
+    implementation 'cz.habarta.typescript-generator:typescript-generator-core:3.1.1185'
+    implementation 'org.springframework:spring-web:6.0.2'
+    testImplementation 'junit:junit:4.13.2'
 }
 
 java {
@@ -35,11 +35,11 @@ publishing {
         maven(MavenPublication) {
             groupId = 'com.github.zerohouse'
             artifactId = 'api_generator'
-            version = "0.0.31"
+            version = "0.0.32"
             from components.java
 
             pom {
-                description = '0.0.31'
+                description = '0.0.32'
             }
         }
     }
